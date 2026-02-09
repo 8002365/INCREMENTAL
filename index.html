@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Incremental Prestige Game</title>
+<style>
+  body { font-family: Arial; background:#111; color:#0f0; text-align:center; }
+  button { font-size:16px; margin:5px; padding:10px; }
+</style>
+</head>
+<body>
+
+<h1>BIG NUMBER Incremental</h1>
+
+<p>Points: <span id="points">0</span></p>
+<p>Points/sec: <span id="pps">1</span></p>
+<p>Prestige: <span id="prestige">0</span></p>
+
+<button onclick="clickGain()">Click</button>
+<button onclick="upgrade()">Upgrade</button>
+<button onclick="prestigeReset()">Prestige</button>
+
+<script>
+let points = 0;
+let pps = 1;
+let prestige = 0;
+let cost = 10;
+
+function format(n) {
+  return n < 1e6 ? Math.floor(n) : n.toExponential(2);
+}
+
+// GAME LOOP
+setInterval(() => {
+  points += pps / 10;
+  update();
+  save();
+}, 100);
+
+// CLICK
+function clickGain() {
+  points += pps;
+}
+
+// UPGRADE
+function upgrade() {
+  if (points >= cost) {
+    points -= cost;
+    pps *= 10;
+    cost *= 5;
+  }
+}
+
+// PRESTIGE
+function prestigeReset() {
+  if (points >= 1e9) {
+    prestige++;
+    points = 0;
+    pps = Math.pow(10, prestige);
+    cost = 10;
+  }
+}
+
+// SAVE
+function save() {
+  localStorage.setItem("save", JSON.stringify({
+    points, pps, prestige, cost, time: Date.now()
+  }));
+}
+
+// LOAD + OFFLINE
+function load() {
+  let save = JSON.parse(localStorage.getItem("save"));
+  if (!save) return;
+  points = save.points;
+  pps = save.pps;
+  prestige = save.prestige;
+  cost = save.cost;
+  let diff = (Date.now() - save.time) / 1000;
+  points += diff * pps;
+}
+
+// UPDATE UI
+function update() {
+  document.getElementById("points").innerHTML = format(points);
+  document.getElementById("pps").innerHTML = format(pps);
+  document.getElementById("prestige").innerHTML = prestige;
+}
+
+load();
+update();
+</script>
+
+</body>
+</html>
